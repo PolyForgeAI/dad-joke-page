@@ -11,16 +11,20 @@ export default async function handler(request) {
 
   if (type === "alle") {
     prompt = `Generate an original Norwegian "Alle barna" joke.
-Requirements:
-- Use proper rhyme at the end of the last line.
-- Make it culturally appropriate dark humor (not cruel).
-- Format the output as:
-Line 1: Alle barna...
-Line 2: ... bortsett fra NAME, [punchline that rhymes with name]
-Line 3: English translation of Line 1
-Line 4: English translation of Line 2`;
+Instructions:
+- The joke must be two lines in Norwegian, followed by a two-line English translation.
+- The **last Norwegian line must rhyme** at the end (rhyme with the child's name).
+- The English lines do **not** need to rhyme — just translate faithfully.
+- Keep the humor dark but culturally appropriate, never cruel or graphic.
+- Use this exact format with one blank line between:
+
+Alle barna ...
+... bortsett fra [Name], [rhyme]
+
+All the children ...
+... except [Name], [English punchline]`;
   } else {
-    prompt = `Give a short, kid-friendly English dad joke. Keep it under 15 words. Return only the joke, no commentary.n Confirm the punchline makes sense and is complete, and that it does not contain a synonyn to a correct punchline that then makes it incorrect.`;
+    prompt = `Give a short, kid-friendly English dad joke. Keep it under 15 words. Return only the joke, no commentary. Confirm the punchline makes sense and is complete, and that it does not contain a synonym to a correct punchline that then makes it incorrect.`;
   }
 
   try {
