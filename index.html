@@ -2,30 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dad & Alle Barna Jokes</title>
+  <title>Dad Jokes & Alle Barna Vits</title>
+
+  <!--
+  ✅ VIEWPORT CONTROL FOR MOBILE DEVICES
+  This line ensures the layout scales correctly on phones and tablets.
+  Without this, iPhones assume a desktop layout and shrink everything.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
+    /* =========================================================================
+       GLOBAL STYLES
+       ========================================================================= */
+
     body {
       font-family: system-ui, sans-serif;
-      background-color: #f0f0f0;
+      background-color: #f0f0f0;    /* light gray background */
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 4rem;
+      padding: 2rem;
       margin: 0;
+      font-size: 16px;              /* base size for scaling */
     }
 
+    /* =========================================================================
+       BUTTON STYLING
+       ========================================================================= */
     .buttons {
       display: flex;
-      gap: 1rem;
+      flex-direction: column;       /* stack buttons vertically on mobile */
+      gap: 1rem;                    /* space between buttons */
       margin-bottom: 2rem;
+      width: 100%;
+      max-width: 400px;
     }
 
     button {
-      padding: 0.75rem 1.25rem;
-      font-size: 1rem;
+      padding: 1rem;
+      font-size: 1.25rem;           /* large readable text */
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
+      width: 100%;                  /* buttons expand to container */
+      transition: background-color 0.3s;
     }
 
     #dadBtn {
@@ -33,53 +54,99 @@
       color: white;
     }
 
+    #dadBtn:hover {
+      background-color: #005ea0;
+    }
+
     #barnaBtn {
       background-color: #d32f2f;
       color: white;
     }
 
+    #barnaBtn:hover {
+      background-color: #a30000;
+    }
+
+    button:disabled {
+      background-color: #aaa;
+      cursor: wait;
+    }
+
+    /* =========================================================================
+       JOKE DISPLAY AREA
+       ========================================================================= */
     #joke {
-      white-space: pre-wrap;
-      font-size: 1.3rem;
-      max-width: 600px;
-      text-align: center;
+      white-space: pre-wrap;         /* keeps line breaks */
+      font-size: 1.5rem;             /* readable size on mobile & desktop */
       line-height: 1.6;
+      max-width: 90vw;               /* readable width on any screen */
+      text-align: center;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
+
+  <!--
+  ============================================================================
+  INTERACTION AREA: TWO BUTTONS
+  ============================================================================
+  One triggers a dad joke in English.
+  The other triggers an "Alle barna" joke in Norwegian with translation.
+  -->
   <div class="buttons">
-    <button id="dadBtn">Tell Dad Joke</button>
-    <button id="barnaBtn">Fortell Alle Barna-vits</button>
+    <button id="dadBtn">Tell a Dad Joke</button>
+    <button id="barnaBtn">Fortell en Alle Barna-vits</button>
   </div>
-  <div id="joke"></div>
+
+  <!--
+  ============================================================================
+  JOKE OUTPUT AREA
+  ============================================================================
+  Text appears here, formatted based on line breaks returned from GPT.
+  -->
+  <div id="joke">🤖 Tap a button above for a fresh AI joke!</div>
 
   <script>
+    // Get references to DOM elements
     const dadBtn = document.getElementById("dadBtn");
     const barnaBtn = document.getElementById("barnaBtn");
     const jokeDiv = document.getElementById("joke");
 
+    // Reusable function to fetch a joke from GPT function
     async function fetchJoke(type) {
-      const btn = type === 'dad' ? dadBtn : barnaBtn;
-      const defaultText = type === 'dad' ? 'Tell Dad Joke' : 'Fortell Alle Barna-vits';
-      const loadingText = 'Loading...';
+      const isDad = type === "dad";
+      const button = isDad ? dadBtn : barnaBtn;
 
-      btn.disabled = true;
-      btn.textContent = loadingText;
+      const originalLabel = isDad ? "Tell a Dad Joke" : "Fortell en Alle Barna-vits";
+      const repeatLabel = isDad ? "Tell another Dad Joke" : "Fortell en ny Alle Barna-vits";
+
+      // UX: indicate loading
+      button.disabled = true;
+      button.textContent = "Loading...";
 
       try {
         const res = await fetch(`/.netlify/functions/gptJoke?type=${type}`);
-        const joke = await res.text();
-        jokeDiv.textContent = joke;
+        const jokeText = await res.text();
+
+        // Display the joke with formatting preserved
+        jokeDiv.textContent = jokeText;
+
+        // Button label switches to "another"
+        button.textContent = repeatLabel;
       } catch (err) {
-        jokeDiv.textContent = "⚠️ Joke failed to load.";
+        jokeDiv.textContent = "⚠️ Joke failed to load. Try again.";
         console.error(err);
+        button.textContent = originalLabel;
       }
 
-      btn.disabled = false;
-      btn.textContent = type === 'dad' ? "Tell another Dad Joke" : "Fortell en ny Alle Barna-vits";
+      button.disabled = false;
     }
 
+    // Event handlers for each button
     dadBtn.addEventListener("click", () => fetchJoke("dad"));
     barnaBtn.addEventListener("click", () => fetchJoke("alle"));
   </script>
