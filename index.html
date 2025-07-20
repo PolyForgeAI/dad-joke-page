@@ -1,128 +1,80 @@
 <!DOCTYPE html>
-<!--
-================================================================================
-🗎  index.html  –  Single-page Dad-Joke UI
---------------------------------------------------------------------------------
-This is an old-school static HTML file—no build step, no React, no bundlers.
-It lives at the *GitHub / repo root* so GitHub Pages and Netlify can both
-serve it directly.
-
-What it does:
-1. Renders one button labeled “Tell me a dad joke”.
-2. When the user clicks, we:
-   a) Disable the button + show a “Loading…” label (good UX).
-   b) Perform a `fetch()` HTTP GET request to the *serverless* endpoint
-      `/.netlify/functions/gptJoke` (see file #2 below).
-   c) Receive plain-text content: a GPT-generated dad-joke string.
-   d) Display that joke inside a <p> element.
-3. Re-enable the button so the user can request another joke.
-
-No CSS frameworks—just a couple embedded `<style>` rules so everything is
-readable without external assets.
-================================================================================
--->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Hyper-Verbose GPT Dad Jokes</title>
-
-  <!--
-  ------------------------------------------------------------------------------
-  Minimal styling:
-  - Flexbox centers the content horizontally.
-  - A modest font stack for cross-platform consistency.
-  - The button is intentionally chunky to improve tap targets on mobile.
-  ------------------------------------------------------------------------------
-  -->
+  <title>Dad Joke Generator</title>
   <style>
-    /* Entire page: use system UI fonts & center contents vertically */
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                   Helvetica, Arial, sans-serif;
+      font-family: system-ui, sans-serif;
+      background-color: #f9f9f9;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 4rem;        /* push content down a bit */
+      justify-content: flex-start;
+      height: 100vh;
+      padding-top: 5rem;
+      margin: 0;
     }
 
-    /* The action button: large padding + cursor pointer for clarity */
     button {
-      padding: 0.6rem 1.2rem;  /* vertical | horizontal */
-      font-size: 1rem;         /* ~16 px default */
-      cursor: pointer;         /* hand icon on hover */
-      border: 1px solid #999;  /* subtle border for visibility */
-      border-radius: 6px;      /* slight rounding */
-      background: #f4f4f4;     /* light grey background */
+      padding: 0.75rem 1.5rem;
+      font-size: 1.25rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
 
-    /* Text block where we’ll inject the joke */
+    button:disabled {
+      background-color: #999;
+      cursor: wait;
+    }
+
     #joke {
-      margin-top: 2rem;
-      max-width: 25rem;        /* keeps long jokes readable on widescreen */
+      margin-top: 3rem;
+      max-width: 600px;
+      font-size: 1.5rem;
       text-align: center;
+      white-space: pre-wrap; /* respects newlines in joke text */
     }
   </style>
 </head>
-
 <body>
-  <!--
-  ------------------------------------------------------------------------------
-  HTML MARKUP SECTION
-  ------------------------------------------------------------------------------>
   <button id="getJoke">Tell me a dad joke</button>
-  <p id="joke"></p>
+  <div id="joke"></div>
 
-  <!--
-  ------------------------------------------------------------------------------
-  💻  Vanilla-JS logic
-  ------------------------------------------------------------------------------
-  We keep everything inside a <script> tag to avoid external .js files—simplest
-  possible setup for beginners.
-  -->
   <script>
-    /* ------------------------------------------------------------------------
-       DOM ELEMENT REFERENCES
-       ------------------------------------------------------------------------*/
-    const btn   = document.getElementById('getJoke'); // The button element
-    const jokeP = document.getElementById('joke');    // Paragraph for output
+    const button = document.getElementById('getJoke');
+    const jokeDiv = document.getElementById('joke');
 
-    /* ------------------------------------------------------------------------
-       MAIN EVENT HANDLER
-       ------------------------------------------------------------------------
-       Attach a click listener. We use an `async` callback so we can `await`
-       the `fetch()` promise (cleaner than nested .then() chains).
-       ------------------------------------------------------------------------*/
-    btn.addEventListener('click', async () => {
-      /* --- UI state: disable button to prevent double-click spam ---------- */
-      btn.disabled = true;
-      btn.textContent = 'Loading…';
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      button.textContent = 'Loading joke...';
 
       try {
-        /* ------------------------------------------------------------------
-           PERFORM NETWORK REQUEST
-           ------------------------------------------------------------------
-           We call a *relative* path (`/.netlify/functions/gptJoke`) rather
-           than a hard-coded full URL.  Netlify automatically rewrites this
-           to the correct edge-function endpoint in production **and** still
-           works on localhost if you run `netlify dev`.
-        ------------------------------------------------------------------ */
-        const response = await fetch('/.netlify/functions/gptJoke');
+        const res = await fetch('/.netlify/functions/gptJoke');
+        const jokeText = await res.text();
 
-        /* -- The function returns plain UTF-8 text, not JSON ---------------- */
-        const jokeText = await response.text();
+        // 🧠 Try to split joke at punctuation (naively)
+        const match = jokeText.match(/^(.*?[\?\.\!\:])\s+(.*)/s);
 
-        /* -- Display the fresh joke in the paragraph ----------------------- */
-        jokeP.textContent = jokeText;
+        let formatted;
+        if (match) {
+          formatted = `${match[1]}\n\n${match[2]}`;
+        } else {
+          formatted = jokeText;
+        }
 
-      } catch (networkErr) {
-        /* --- Graceful fallback if the function or network fails ----------- */
-        jokeP.textContent = '🤖 GPT is shy right now – try again later.';
-        console.error('Error fetching joke:', networkErr);
+        jokeDiv.textContent = formatted;
+        button.textContent = 'Tell another joke';
+      } catch (err) {
+        jokeDiv.textContent = '😢 Joke failed to load.';
+        console.error('Error fetching joke:', err);
+        button.textContent = 'Try again';
       }
 
-      /* --- Restore button UI regardless of success/failure --------------- */
-      btn.textContent = 'Tell me a dad joke';
-      btn.disabled = false;
+      button.disabled = false;
     });
   </script>
 </body>
