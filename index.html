@@ -2,80 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dad Joke Generator</title>
+  <title>Dad & Alle Barna Jokes</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
-      background-color: #f9f9f9;
+      background-color: #f0f0f0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      padding-top: 5rem;
+      padding-top: 4rem;
       margin: 0;
     }
 
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
     button {
-      padding: 0.75rem 1.5rem;
-      font-size: 1.25rem;
-      background-color: #007acc;
-      color: white;
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
       border: none;
       border-radius: 6px;
       cursor: pointer;
     }
 
-    button:disabled {
-      background-color: #999;
-      cursor: wait;
+    #dadBtn {
+      background-color: #007acc;
+      color: white;
+    }
+
+    #barnaBtn {
+      background-color: #d32f2f;
+      color: white;
     }
 
     #joke {
-      margin-top: 3rem;
+      white-space: pre-wrap;
+      font-size: 1.3rem;
       max-width: 600px;
-      font-size: 1.5rem;
       text-align: center;
-      white-space: pre-wrap; /* respects newlines in joke text */
+      line-height: 1.6;
     }
   </style>
 </head>
 <body>
-  <button id="getJoke">Tell me a dad joke</button>
+  <div class="buttons">
+    <button id="dadBtn">Tell Dad Joke</button>
+    <button id="barnaBtn">Fortell Alle Barna-vits</button>
+  </div>
   <div id="joke"></div>
 
   <script>
-    const button = document.getElementById('getJoke');
-    const jokeDiv = document.getElementById('joke');
+    const dadBtn = document.getElementById("dadBtn");
+    const barnaBtn = document.getElementById("barnaBtn");
+    const jokeDiv = document.getElementById("joke");
 
-    button.addEventListener('click', async () => {
-      button.disabled = true;
-      button.textContent = 'Loading joke...';
+    async function fetchJoke(type) {
+      const btn = type === 'dad' ? dadBtn : barnaBtn;
+      const defaultText = type === 'dad' ? 'Tell Dad Joke' : 'Fortell Alle Barna-vits';
+      const loadingText = 'Loading...';
+
+      btn.disabled = true;
+      btn.textContent = loadingText;
 
       try {
-        const res = await fetch('/.netlify/functions/gptJoke');
-        const jokeText = await res.text();
-
-        // 🧠 Try to split joke at punctuation (naively)
-        const match = jokeText.match(/^(.*?[\?\.\!\:])\s+(.*)/s);
-
-        let formatted;
-        if (match) {
-          formatted = `${match[1]}\n\n${match[2]}`;
-        } else {
-          formatted = jokeText;
-        }
-
-        jokeDiv.textContent = formatted;
-        button.textContent = 'Tell another joke';
+        const res = await fetch(`/.netlify/functions/gptJoke?type=${type}`);
+        const joke = await res.text();
+        jokeDiv.textContent = joke;
       } catch (err) {
-        jokeDiv.textContent = '😢 Joke failed to load.';
-        console.error('Error fetching joke:', err);
-        button.textContent = 'Try again';
+        jokeDiv.textContent = "⚠️ Joke failed to load.";
+        console.error(err);
       }
 
-      button.disabled = false;
-    });
+      btn.disabled = false;
+      btn.textContent = type === 'dad' ? "Tell another Dad Joke" : "Fortell en ny Alle Barna-vits";
+    }
+
+    dadBtn.addEventListener("click", () => fetchJoke("dad"));
+    barnaBtn.addEventListener("click", () => fetchJoke("alle"));
   </script>
 </body>
 </html>
