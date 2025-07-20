@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dad Joke Button</title>
+  <style>
+    body { font-family: sans-serif; display:flex; flex-direction:column; align-items:center; margin-top:4rem; }
+    button { padding:0.6rem 1.2rem; font-size:1rem; cursor:pointer; }
+    #joke { margin-top:2rem; max-width:25rem; text-align:center; }
+  </style>
+</head>
+<body>
+  <button id="getJoke">Tell me a dad joke</button>
+  <p id="joke"></p>
+
+  <script>
+    const btn   = document.getElementById('getJoke');
+    const jokeP = document.getElementById('joke');
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;                   // prevent double-click spam
+      btn.textContent = 'Loading…';
+      try {
+        const res = await fetch('https://icanhazdadjoke.com/', {
+          headers: { Accept: 'text/plain' }  // simplest: plain-text reply
+        });
+        const joke = await res.text();
+        jokeP.textContent = joke;
+      } catch (err) {
+        jokeP.textContent = 'Oops, no joke right now.';
+        console.error(err);
+      }
+      btn.textContent = 'Tell me a dad joke';
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>
