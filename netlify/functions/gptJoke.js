@@ -10,13 +10,19 @@ export default async function handler(request) {
   let prompt = "";
 
   if (type === "alle") {
-    prompt = `Generate an original Norwegian "Alle barna" joke.
+    prompt = `Generate an original Norwegian "Alle barna" joke. that abides by the cultural Alle Barna joke structure of a "crazy"/unexpected, but RELEVANT/connected twist at the end.
+
 Instructions:
+
 - The joke must be two lines in Norwegian, followed by a two-line English translation.
-- The **last Norwegian line must rhyme** at the end (rhyme with the child's name).
-- The English lines do **not** need to rhyme — just translate faithfully.
-- Keep the humor dark but culturally appropriate, never cruel or graphic.
-- Use this exact format with one blank line between:
+- The last Norwegian line must rhyme (rhyme with the child's name).
+- The English lines do not need to rhyme — just translate faithfully.
+- Keep the humor dark but culturally appropriate, never cruel or graphic. 
+- Do not repeat the same name in multiple jokes.
+- Do not repeat the same name more than once per joke.
+- Avoid generic names like “Lars” unless necessary.
+
+Use this exact format with one blank line between:
 
 Alle barna ...
 ... bortsett fra [Name], [rhyme]
