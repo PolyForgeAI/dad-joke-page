@@ -1,35 +1,126 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+🗎  index.html  –  Single-page Dad-Joke UI
+--------------------------------------------------------------------------------
+This is an old-school static HTML file—no build step, no React, no bundlers.
+It lives at the *GitHub / repo root* so GitHub Pages and Netlify can both
+serve it directly.
+
+What it does:
+1. Renders one button labeled “Tell me a dad joke”.
+2. When the user clicks, we:
+   a) Disable the button + show a “Loading…” label (good UX).
+   b) Perform a `fetch()` HTTP GET request to the *serverless* endpoint
+      `/.netlify/functions/gptJoke` (see file #2 below).
+   c) Receive plain-text content: a GPT-generated dad-joke string.
+   d) Display that joke inside a <p> element.
+3. Re-enable the button so the user can request another joke.
+
+No CSS frameworks—just a couple embedded `<style>` rules so everything is
+readable without external assets.
+================================================================================
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dad Joke Button</title>
+  <title>Hyper-Verbose GPT Dad Jokes</title>
+
+  <!--
+  ------------------------------------------------------------------------------
+  Minimal styling:
+  - Flexbox centers the content horizontally.
+  - A modest font stack for cross-platform consistency.
+  - The button is intentionally chunky to improve tap targets on mobile.
+  ------------------------------------------------------------------------------
+  -->
   <style>
-    body { font-family: sans-serif; display:flex; flex-direction:column; align-items:center; margin-top:4rem; }
-    button { padding:0.6rem 1.2rem; font-size:1rem; cursor:pointer; }
-    #joke { margin-top:2rem; max-width:25rem; text-align:center; }
+    /* Entire page: use system UI fonts & center contents vertically */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 4rem;        /* push content down a bit */
+    }
+
+    /* The action button: large padding + cursor pointer for clarity */
+    button {
+      padding: 0.6rem 1.2rem;  /* vertical | horizontal */
+      font-size: 1rem;         /* ~16 px default */
+      cursor: pointer;         /* hand icon on hover */
+      border: 1px solid #999;  /* subtle border for visibility */
+      border-radius: 6px;      /* slight rounding */
+      background: #f4f4f4;     /* light grey background */
+    }
+
+    /* Text block where we’ll inject the joke */
+    #joke {
+      margin-top: 2rem;
+      max-width: 25rem;        /* keeps long jokes readable on widescreen */
+      text-align: center;
+    }
   </style>
 </head>
+
 <body>
+  <!--
+  ------------------------------------------------------------------------------
+  HTML MARKUP SECTION
+  ------------------------------------------------------------------------------>
   <button id="getJoke">Tell me a dad joke</button>
   <p id="joke"></p>
 
+  <!--
+  ------------------------------------------------------------------------------
+  💻  Vanilla-JS logic
+  ------------------------------------------------------------------------------
+  We keep everything inside a <script> tag to avoid external .js files—simplest
+  possible setup for beginners.
+  -->
   <script>
-    const btn   = document.getElementById('getJoke');
-    const jokeP = document.getElementById('joke');
+    /* ------------------------------------------------------------------------
+       DOM ELEMENT REFERENCES
+       ------------------------------------------------------------------------*/
+    const btn   = document.getElementById('getJoke'); // The button element
+    const jokeP = document.getElementById('joke');    // Paragraph for output
 
+    /* ------------------------------------------------------------------------
+       MAIN EVENT HANDLER
+       ------------------------------------------------------------------------
+       Attach a click listener. We use an `async` callback so we can `await`
+       the `fetch()` promise (cleaner than nested .then() chains).
+       ------------------------------------------------------------------------*/
     btn.addEventListener('click', async () => {
-      btn.disabled = true;                   // prevent double-click spam
+      /* --- UI state: disable button to prevent double-click spam ---------- */
+      btn.disabled = true;
       btn.textContent = 'Loading…';
+
       try {
-        const res = await fetch('https://icanhazdadjoke.com/', {
-          headers: { Accept: 'text/plain' }  // simplest: plain-text reply
-        });
-        const joke = await res.text();
-        jokeP.textContent = joke;
-      } catch (err) {
-        jokeP.textContent = 'Oops, no joke right now.';
-        console.error(err);
+        /* ------------------------------------------------------------------
+           PERFORM NETWORK REQUEST
+           ------------------------------------------------------------------
+           We call a *relative* path (`/.netlify/functions/gptJoke`) rather
+           than a hard-coded full URL.  Netlify automatically rewrites this
+           to the correct edge-function endpoint in production **and** still
+           works on localhost if you run `netlify dev`.
+        ------------------------------------------------------------------ */
+        const response = await fetch('/.netlify/functions/gptJoke');
+
+        /* -- The function returns plain UTF-8 text, not JSON ---------------- */
+        const jokeText = await response.text();
+
+        /* -- Display the fresh joke in the paragraph ----------------------- */
+        jokeP.textContent = jokeText;
+
+      } catch (networkErr) {
+        /* --- Graceful fallback if the function or network fails ----------- */
+        jokeP.textContent = '🤖 GPT is shy right now – try again later.';
+        console.error('Error fetching joke:', networkErr);
       }
+
+      /* --- Restore button UI regardless of success/failure --------------- */
       btn.textContent = 'Tell me a dad joke';
       btn.disabled = false;
     });
