@@ -1,0 +1,7 @@
+{
+  "name": "dad-joke-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "openai": "^4.25.0"
+  }
+}
