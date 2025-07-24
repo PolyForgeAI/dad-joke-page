@@ -30,12 +30,15 @@ Alle barna ...
 All the children ...
 ... except [Name], [English punchline]`;
   } else {
-    prompt = `Give a short, kid-friendly English dad joke. Keep it under 15 words. Return only the joke, no commentary. Confirm the punchline makes sense and is complete, and that it does not contain a synonym to a correct punchline that then makes it incorrect.`;
+    prompt = `Give a short, freshly created, kid-friendly English dad joke. Keep it under 15 words.
+    Return only the joke, no commentary. Confirm the punchline makes sense and is complete,
+    and that it does not contain a synonym to a correct punchline that then makes it incorrect.
+    IMPORTANT: The jokes cannot repeat.`;
   }
 
   try {
     const out = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
